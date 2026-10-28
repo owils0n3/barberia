@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Saldo Barbearia</title>
+
+  <!-- PWA / iOS Config -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Barbearia">
+  <meta name="theme-color" content="#F7F7F9">
+  
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%231C1C1E'/%3E%3Ctext x='50%25' y='54%25' font-size='260' text-anchor='middle' dominant-baseline='middle'%3E✂️%3C/text%3E%3C/svg%3E">
+
+  <!-- Bibliotecas do Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database-compat.js"></script>
+
+  <style>
+    :root {
+      --bg-primary: #F7F7F9;
+      --bg-elevated: #FFFFFF;
+      --primary: #1C1C1E;
+      --success: #34C759;
+      --success-bg: #E8F5E9;
+      --danger: #FF3B30;
+      --danger-bg: #FFF1F0;
+      --text-primary: #1C1C1E;
+      --text-secondary: #8E8E93;
+      --text-muted: #AEAEB2;
+      --border: rgba(0, 0, 0, 0.06);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: env(safe-area-inset-top) 20px 40px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 20px auto 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Cards */
+    .ios-card {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      border: 0.5px solid var(--border);
+    }
+
+    /* Saldo Topo */
+    .saldo-header {
+      text-align: center;
+      padding: 10px 0;
+    }
+    .saldo-header h2 {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+    .saldo-valor {
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-top: 5px;
+      letter-spacing: -1px;
+      transition: color 0.3s ease;
+    }
+    .saldo-negativo { color: var(--danger) !important; }
+
+    /* Ações Rápidas */
+    .card-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      display: block;
+    }
+    .quick-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn-quick {
+      background: var(--bg-elevated);
+      color: var(--primary);
+      border: 0.5px solid var(--border);
+      padding: 14px;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: transform 0.1s;
+    }
+    .btn-quick:active { transform: scale(0.98); background: #EFEFF4; }
+
+    /* Lançamento Personalizado */
+    .form-group {
+      margin-bottom: 12px;
+    }
+    input {
+      width: 100%;
+      height: 44px;
+      padding: 0 14px;
+      font-size: 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: #EFEFF4;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input:focus {
+      border-color: var(--primary);
+      background: #FFF;
+    }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .btn {
+      flex: 1;
+      height: 44px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-add { background: var(--success); color: #FFF; }
+    .btn-sub { background: var(--danger); color: #FFF; }
+    .btn:active { opacity: 0.8; }
+
+    /* Histórico */
+    .history-list {
+      list-style: none;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-desc { font-weight: 600; font-size: 0.95rem; }
+    .history-date { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+    .history-val { font-weight: 700; font-size: 1rem; }
+    .val-pos { color: var(--success); }
+    .val-neg { color: var(--primary); }
+
+    /* Feedback */
+    #status-auth {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="status-auth">Autenticando...</div>
+
+  <div class="container">
+    
+    <!-- SALDO ATUAL -->
+    <div class="ios-card saldo-header">
+      <h2>Saldo Atual</h2>
+      <div class="saldo-valor" id="saldoDisplay">R$ 0,00</div>
+    </div>
+
+    <!-- AÇÕES RÁPIDAS -->
+    <div class="ios-card">
+      <span class="card-title">⚡ Ações Rápidas (Debitar)</span>
+      <div class="quick-actions">
+        <button class="btn-quick" onclick="lancarRapido('Corte', 45.00)">
+          <span>✂️ Corte</span> <span>- R$ 45,00</span>
+        </button>
+        <button class="btn-quick" onclick="lancarRapido('Barba', 25.00)">
+          <span>🧔 Barba</span> <span>- R$ 25,00</span>
+        </button>
+        <button class="btn-quick" onclick="lancarRapido('Corte + Barba', 70.00)">
+          <span>✂️+🧔 Corte + Barba</span> <span>- R$ 70,00</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- LANÇAMENTO PERSONALIZADO -->
+    <div class="ios-card">
+      <span class="card-title">✏️ Lançamento Personalizado</span>
+      <div class="form-group">
+        <input type="text" id="inputDesc" placeholder="Descrição (Ex: Recarga Pix)">
+      </div>
+      <div class="form-group">
+        <input type="number" id="inputValor" placeholder="Valor (R$)" step="0.01" inputmode="decimal">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-add" onclick="lancarPersonalizado('soma')">🟢 + Adicionar</button>
+        <button class="btn btn-sub" onclick="lancarPersonalizado('subtracao')">🔴 - Subtrair</button>
+      </div>
+    </div>
+
+    <!-- HISTÓRICO -->
+    <div class="ios-card">
+      <span class="card-title">📝 Histórico Recente</span>
+      <ul class="history-list" id="listaHistorico">
+        <li style="text-align:center; padding: 20px; color: var(--text-muted); font-size: 0.85rem;">Carregando histórico...</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. CONFIGURAÇÃO DO FIREBASE (INBOX RÁPIDA)
+    // ==========================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyD7vdvBDk6k48AlRDQpdrhOxG212MovmrM",
+      authDomain: "rocha-batista.firebaseapp.com",
+      databaseURL: "https://rocha-batista-default-rtdb.firebaseio.com",
+      projectId: "rocha-batista",
+      storageBucket: "rocha-batista.firebasestorage.app",
+      messagingSenderId: "737568409775",
+      appId: "1:737568409775:web:41b6eefa0b18199886ac5a"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // Login com o mesmo usuário da Inbox Rápida
+    const DEFAULT_EMAIL = "rochabatista@wilson.com";
+    const DEFAULT_PASS = "wrzt01";
+
+    let userId = null;
+    let saldoAtual = 0;
+
+    // ==========================================
+    // 2. AUTENTICAÇÃO
+    // ==========================================
+    auth.signInWithEmailAndPassword(DEFAULT_EMAIL, DEFAULT_PASS).catch(err => {
+      document.getElementById('status-auth').innerText = "🔴 Erro de Login: " + err.message;
+    });
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        userId = user.uid;
+        document.getElementById('status-auth').innerText = "🟢 Conectado";
+        carregarDados();
+      }
+    });
+
+    // ==========================================
+    // 3. LEITURA DE DADOS (REALTIME)
+    // ==========================================
+    function carregarDados() {
+      // Ouve o Saldo
+      db.ref(`usuarios/${userId}/barbearia/saldo`).on('value', snapshot => {
+        saldoAtual = snapshot.val() || 0;
+        atualizarVisorSaldo(saldoAtual);
+      });
+
+      // Ouve o Histórico (Últimos 30 lançamentos)
+      db.ref(`usuarios/${userId}/barbearia/historico`).orderByChild('timestamp').limitToLast(30).on('value', snapshot => {
+        const lista = document.getElementById('listaHistorico');
+        lista.innerHTML = '';
+        
+        if (!snapshot.exists()) {
+          lista.innerHTML = '<li style="text-align:center; padding: 20px; color: var(--text-muted); font-size: 0.85rem;">Nenhuma movimentação.</li>';
+          return;
+        }
+
+        const registros = [];
+        snapshot.forEach(child => { registros.push(child.val()); });
+        
+        // Inverte para mostrar o mais recente no topo
+        registros.reverse().forEach(item => {
+          const li = document.createElement('li');
+          li.className = 'history-item';
+          
+          const isPositivo = item.tipo === 'soma';
+          const sinal = isPositivo ? '+' : '-';
+          const classeCor = isPositivo ? 'val-pos' : 'val-neg';
+          
+          // Formata Data/Hora
+          const dataObj = new Date(item.timestamp);
+          const dataStr = dataObj.toLocaleDateString('pt-BR') + ' às ' + dataObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+
+          li.innerHTML = `
+            <div>
+              <div class="history-desc">${item.descricao}</div>
+              <div class="history-date">${dataStr}</div>
+            </div>
+            <div class="history-val ${classeCor}">
+              ${sinal} R$ ${item.valor.toFixed(2).replace('.', ',')}
+            </div>
+          `;
+          lista.appendChild(li);
+        });
+      });
+    }
+
+    // ==========================================
+    // 4. FUNÇÕES DE LANÇAMENTO
+    // ==========================================
+    function lancarRapido(descricao, valor) {
+      if(confirm(`Confirmar: ${descricao} (-R$ ${valor.toFixed(2).replace('.', ',')})?`)) {
+        processarTransacao(descricao, valor, 'subtracao');
+      }
+    }
+
+    function lancarPersonalizado(tipo) {
+      const descInput = document.getElementById('inputDesc');
+      const valInput = document.getElementById('inputValor');
+      
+      const descricao = descInput.value.trim() || (tipo === 'soma' ? 'Recarga' : 'Gasto Avulso');
+      const valorStr = valInput.value.replace(',', '.');
+      const valor = parseFloat(valorStr);
+
+      if (isNaN(valor) || valor <= 0) {
+        alert("Digite um valor válido!");
+        return;
+      }
+
+      processarTransacao(descricao, valor, tipo);
+      
+      // Limpar campos
+      descInput.value = '';
+      valInput.value = '';
+    }
+
+    function processarTransacao(descricao, valor, tipo) {
+      if (!userId) return;
+
+      const novoSaldo = tipo === 'soma' ? (saldoAtual + valor) : (saldoAtual - valor);
+      
+      const novaTransacao = {
+        descricao: descricao,
+        valor: valor,
+        tipo: tipo,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      };
+
+      const updates = {};
+      const novaChaveHist = db.ref().child(`usuarios/${userId}/barbearia/historico`).push().key;
+      
+      updates[`usuarios/${userId}/barbearia/historico/${novaChaveHist}`] = novaTransacao;
+      updates[`usuarios/${userId}/barbearia/saldo`] = novoSaldo;
+
+      db.ref().update(updates).catch(err => alert("Erro ao salvar: " + err.message));
+    }
+
+    // ==========================================
+    // 5. INTERFACE
+    // ==========================================
+    function atualizarVisorSaldo(valor) {
+      const visor = document.getElementById('saldoDisplay');
+      visor.innerText = `R$ ${valor.toFixed(2).replace('.', ',')}`;
+      
+      if (valor < 0) {
+        visor.classList.add('saldo-negativo');
+      } else {
+        visor.classList.remove('saldo-negativo');
+      }
+    }
+  </script>
+</body>
+</html>
