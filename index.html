@@ -67,27 +67,30 @@
       border: 0.5px solid var(--border);
     }
 
-    /* Saldo Topo */
+    /* Saldo Topo (Estilo Caixa Escura Referência) */
     .saldo-header {
-      text-align: center;
-      padding: 12px 0;
+      background: var(--primary) !important;
+      color: #FFFFFF;
+      text-align: left;
+      padding: 22px;
+      border: none;
     }
     .saldo-header h2 {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
+      font-size: 0.75rem;
+      color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 1.2px;
       font-weight: 600;
     }
     .saldo-valor {
-      font-size: 3rem;
+      font-size: 2.6rem;
       font-weight: 700;
-      color: var(--text-primary);
-      margin-top: 4px;
+      color: #FFFFFF;
+      margin-top: 6px;
       letter-spacing: -1px;
       transition: color 0.3s ease;
     }
-    .saldo-negativo { color: var(--danger) !important; }
+    .saldo-negativo { color: #FF453A !important; }
 
     /* Ações Rápidas */
     .card-header-flex {
@@ -260,13 +263,13 @@
 
   <div class="container">
     
-    <!-- SALDO ATUAL -->
+    <!-- SALDO ATUAL (CAIXA ESCURA) -->
     <div class="ios-card saldo-header">
       <h2>Saldo Atual</h2>
       <div class="saldo-valor" id="saldoDisplay">R$ 0,00</div>
     </div>
 
-    <!-- AÇÕES RÁPIDAS (Ordenadas por preço) -->
+    <!-- AÇÕES RÁPIDAS -->
     <div class="ios-card">
       <span class="card-title" style="margin-bottom: 14px; display:block;">Ações Rápidas</span>
       <div class="quick-actions">
@@ -375,9 +378,8 @@
         snapshot.forEach(child => { registros.push({ id: child.key, ...child.val() }); });
         
         registros.sort((a, b) => b.timestamp - a.timestamp);
-        dadosGlobaisHistorico = registros; // Salva para o relatório do WhatsApp
+        dadosGlobaisHistorico = registros;
 
-        // Agrupar por Mês/Ano
         const grupos = {};
         registros.forEach(item => {
           const d = new Date(item.timestamp);
@@ -494,7 +496,6 @@
         return;
       }
 
-      // Pega o mês do lançamento mais recente
       const maisRecente = new Date(dadosGlobaisHistorico[0].timestamp);
       const mesNome = maisRecente.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
       const mesFormatado = mesNome.charAt(0).toUpperCase() + mesNome.slice(1);
@@ -506,16 +507,16 @@
         return d.getMonth() === mesAlvo && d.getFullYear() === anoAlvo;
       });
 
+      // Usando crases nos números para formatar como bloco de código no WhatsApp (evita links clicáveis)
       let texto = `Relatório Barbearia - ${mesFormatado}\n\n`;
-      texto += `Saldo Atual: R$ ${saldoAtual.toFixed(2).replace('.', ',')}\n\n`;
+      texto += `Saldo Atual: \`R$ ${saldoAtual.toFixed(2).replace('.', ',')}\`\n\n`;
       texto += `Movimentações do Mês:\n`;
 
       itensDoMes.forEach(item => {
         const d = new Date(item.timestamp);
         const dataCurta = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
         const sinal = item.tipo === 'soma' ? '+' : '-';
-        // Espaços invisíveis ou formatação textual para evitar que o WhatsApp crie links de discagem com os números
-        texto += `• ${dataCurta}: ${item.descricao} (${sinal} R$ ${item.valor.toFixed(2).replace('.', ',')})\n`;
+        texto += `• ${dataCurta}: ${item.descricao} (\`${sinal} R$ ${item.valor.toFixed(2).replace('.', ',')}\`)\n`;
       });
 
       const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
