@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-title" content="Barbearia">
   <meta name="theme-color" content="#F7F7F9">
   
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%231C1C1E'/%3E%3Ctext x='50%25' y='54%25' font-size='260' text-anchor='middle' dominant-baseline='middle'%3E✂️%3C/text%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%231C1C1E'/%3E%3Ctext x='50%25' y='54%25' font-size='260' text-anchor='middle' dominant-baseline='middle'%3EB%3C/text%3E%3C/svg%3E">
 
   <!-- Bibliotecas do Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
@@ -24,15 +24,15 @@
       --bg-elevated: #FFFFFF;
       --primary: #1C1C1E;
       --success: #34C759;
-      --success-bg: #E8F5E9;
       --danger: #FF3B30;
       --danger-bg: #FFF1F0;
       --text-primary: #1C1C1E;
       --text-secondary: #8E8E93;
       --text-muted: #AEAEB2;
-      --border: rgba(0, 0, 0, 0.06);
+      --border: rgba(0, 0, 0, 0.08);
       --radius-lg: 20px;
       --radius-md: 14px;
+      --radius-sm: 10px;
     }
 
     * {
@@ -47,12 +47,12 @@
       background-color: var(--bg-primary);
       color: var(--text-primary);
       min-height: 100vh;
-      padding: env(safe-area-inset-top) 20px 40px;
+      padding: calc(env(safe-area-inset-top) + 20px) 20px 40px;
     }
 
     .container {
       max-width: 600px;
-      margin: 20px auto 0;
+      margin: 0 auto;
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -62,28 +62,28 @@
     .ios-card {
       background: var(--bg-elevated);
       border-radius: var(--radius-lg);
-      padding: 20px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      padding: 22px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
       border: 0.5px solid var(--border);
     }
 
     /* Saldo Topo */
     .saldo-header {
       text-align: center;
-      padding: 10px 0;
+      padding: 12px 0;
     }
     .saldo-header h2 {
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       color: var(--text-secondary);
       text-transform: uppercase;
       letter-spacing: 1px;
       font-weight: 600;
     }
     .saldo-valor {
-      font-size: 2.8rem;
+      font-size: 3rem;
       font-weight: 700;
       color: var(--text-primary);
-      margin-top: 5px;
+      margin-top: 4px;
       letter-spacing: -1px;
       transition: color 0.3s ease;
     }
@@ -91,11 +91,13 @@
 
     /* Ações Rápidas */
     .card-title {
-      font-size: 0.9rem;
-      font-weight: 700;
+      font-size: 0.85rem;
+      font-weight: 600;
       color: var(--text-secondary);
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       display: block;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     .quick-actions {
       display: flex;
@@ -106,18 +108,18 @@
       background: var(--bg-elevated);
       color: var(--primary);
       border: 0.5px solid var(--border);
-      padding: 14px;
+      padding: 16px;
       border-radius: var(--radius-md);
-      font-size: 1rem;
-      font-weight: 600;
+      font-size: 0.95rem;
+      font-weight: 500;
       display: flex;
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-      transition: transform 0.1s;
+      transition: transform 0.1s, background-color 0.2s;
     }
-    .btn-quick:active { transform: scale(0.98); background: #EFEFF4; }
+    .btn-quick:active { transform: scale(0.98); background: #F2F2F7; }
+    .btn-quick span:last-child { font-weight: 600; color: var(--text-secondary); }
 
     /* Lançamento Personalizado */
     .form-group {
@@ -125,15 +127,18 @@
     }
     input {
       width: 100%;
-      height: 44px;
-      padding: 0 14px;
-      font-size: 1rem;
+      height: 48px;
+      padding: 0 16px;
+      font-size: 0.95rem;
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      background: #EFEFF4;
+      background: #F7F7F9;
+      color: var(--text-primary);
       outline: none;
       -webkit-appearance: none;
+      transition: border-color 0.2s, background-color 0.2s;
     }
+    input::placeholder { color: var(--text-muted); }
     input:focus {
       border-color: var(--primary);
       background: #FFF;
@@ -141,20 +146,21 @@
     .btn-row {
       display: flex;
       gap: 10px;
-      margin-top: 14px;
+      margin-top: 16px;
     }
     .btn {
       flex: 1;
-      height: 44px;
+      height: 48px;
       border: none;
       border-radius: var(--radius-md);
       font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
     }
-    .btn-add { background: var(--success); color: #FFF; }
-    .btn-sub { background: var(--danger); color: #FFF; }
-    .btn:active { opacity: 0.8; }
+    .btn-add { background: var(--primary); color: #FFF; }
+    .btn-sub { background: #FFFFFF; color: var(--danger); border: 1px solid var(--border); }
+    .btn:active { transform: scale(0.97); opacity: 0.8; }
 
     /* Histórico */
     .history-list {
@@ -166,28 +172,65 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 0;
+      padding: 14px 0;
       border-bottom: 1px solid var(--border);
     }
     .history-item:last-child { border-bottom: none; }
-    .history-desc { font-weight: 600; font-size: 0.95rem; }
-    .history-date { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
-    .history-val { font-weight: 700; font-size: 1rem; }
-    .val-pos { color: var(--success); }
-    .val-neg { color: var(--primary); }
-
-    /* Feedback */
-    #status-auth {
-      text-align: center;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-bottom: 10px;
+    .history-info { flex: 1; }
+    .history-desc { font-weight: 500; font-size: 0.95rem; color: var(--text-primary); }
+    .history-date { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+    
+    .history-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
+    .history-val { font-weight: 600; font-size: 0.95rem; }
+    .val-pos { color: var(--success); }
+    .val-neg { color: var(--text-primary); }
+    
+    .btn-delete {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1rem;
+      padding: 6px;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+    }
+    .btn-delete:hover { color: var(--danger); background: var(--danger-bg); }
+
+    /* Modal Customizado Premium */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+      display: flex; align-items: center; justify-content: center; z-index: 1000;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    
+    .modal-box {
+      background: var(--bg-elevated); width: 300px;
+      border-radius: var(--radius-lg); padding: 24px; text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      transform: scale(0.95); transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .modal-overlay.active .modal-box { transform: scale(1); }
+    
+    .modal-title { font-weight: 600; font-size: 1.1rem; margin-bottom: 8px; color: var(--text-primary); }
+    .modal-desc { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.4; }
+    .modal-actions { display: flex; gap: 10px; }
+    
+    .modal-btn {
+      flex: 1; padding: 14px; border: none; border-radius: var(--radius-md);
+      font-weight: 600; font-size: 0.95rem; cursor: pointer;
+    }
+    .modal-btn-cancel { background: #F2F2F7; color: var(--primary); }
+    .modal-btn-confirm { background: var(--primary); color: #FFF; }
+    .modal-btn-danger { background: var(--danger); color: #FFF; }
   </style>
 </head>
 <body>
-
-  <div id="status-auth">Autenticando...</div>
 
   <div class="container">
     
@@ -199,49 +242,59 @@
 
     <!-- AÇÕES RÁPIDAS -->
     <div class="ios-card">
-      <span class="card-title">⚡ Ações Rápidas (Debitar)</span>
+      <span class="card-title">Ações Rápidas</span>
       <div class="quick-actions">
-        <button class="btn-quick" onclick="lancarRapido('Corte', 45.00)">
-          <span>✂️ Corte</span> <span>- R$ 45,00</span>
-        </button>
         <button class="btn-quick" onclick="lancarRapido('Barba', 25.00)">
-          <span>🧔 Barba</span> <span>- R$ 25,00</span>
+          <span>Barba</span> <span>- R$ 25,00</span>
+        </button>
+        <button class="btn-quick" onclick="lancarRapido('Corte', 45.00)">
+          <span>Corte</span> <span>- R$ 45,00</span>
         </button>
         <button class="btn-quick" onclick="lancarRapido('Corte + Barba', 70.00)">
-          <span>✂️+🧔 Corte + Barba</span> <span>- R$ 70,00</span>
+          <span>Corte + Barba</span> <span>- R$ 70,00</span>
         </button>
       </div>
     </div>
 
     <!-- LANÇAMENTO PERSONALIZADO -->
     <div class="ios-card">
-      <span class="card-title">✏️ Lançamento Personalizado</span>
+      <span class="card-title">Lançamento Personalizado</span>
       <div class="form-group">
-        <input type="text" id="inputDesc" placeholder="Descrição (Ex: Recarga Pix)">
+        <input type="text" id="inputDesc" placeholder="Descrição">
       </div>
       <div class="form-group">
         <input type="number" id="inputValor" placeholder="Valor (R$)" step="0.01" inputmode="decimal">
       </div>
       <div class="btn-row">
-        <button class="btn btn-add" onclick="lancarPersonalizado('soma')">🟢 + Adicionar</button>
-        <button class="btn btn-sub" onclick="lancarPersonalizado('subtracao')">🔴 - Subtrair</button>
+        <button class="btn btn-add" onclick="lancarPersonalizado('soma')">Adicionar</button>
+        <button class="btn btn-sub" onclick="lancarPersonalizado('subtracao')">Subtrair</button>
       </div>
     </div>
 
     <!-- HISTÓRICO -->
     <div class="ios-card">
-      <span class="card-title">📝 Histórico Recente</span>
+      <span class="card-title">Histórico Recente</span>
       <ul class="history-list" id="listaHistorico">
-        <li style="text-align:center; padding: 20px; color: var(--text-muted); font-size: 0.85rem;">Carregando histórico...</li>
+        <li style="text-align:center; padding: 20px; color: var(--text-muted); font-size: 0.85rem;">Carregando...</li>
       </ul>
     </div>
 
   </div>
 
+  <!-- MODAL DE CONFIRMAÇÃO CUSTOMIZADO -->
+  <div class="modal-overlay" id="customModal">
+    <div class="modal-box">
+      <div class="modal-title" id="modalTitle">Confirmação</div>
+      <div class="modal-desc" id="modalDesc">Tem certeza que deseja continuar?</div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancelar</button>
+        <button class="modal-btn" id="modalConfirmBtn" onclick="executeModal()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // ==========================================
-    // 1. CONFIGURAÇÃO DO FIREBASE (INBOX RÁPIDA)
-    // ==========================================
+    // Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyD7vdvBDk6k48AlRDQpdrhOxG212MovmrM",
       authDomain: "rocha-batista.firebaseapp.com",
@@ -258,39 +311,29 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // Login com o mesmo usuário da Inbox Rápida
     const DEFAULT_EMAIL = "rochabatista@wilson.com";
     const DEFAULT_PASS = "wrzt01";
 
     let userId = null;
     let saldoAtual = 0;
 
-    // ==========================================
-    // 2. AUTENTICAÇÃO
-    // ==========================================
-    auth.signInWithEmailAndPassword(DEFAULT_EMAIL, DEFAULT_PASS).catch(err => {
-      document.getElementById('status-auth').innerText = "🔴 Erro de Login: " + err.message;
-    });
+    // Login Silencioso
+    auth.signInWithEmailAndPassword(DEFAULT_EMAIL, DEFAULT_PASS).catch(err => console.error(err));
 
     auth.onAuthStateChanged(user => {
       if (user) {
         userId = user.uid;
-        document.getElementById('status-auth').innerText = "🟢 Conectado";
         carregarDados();
       }
     });
 
-    // ==========================================
-    // 3. LEITURA DE DADOS (REALTIME)
-    // ==========================================
+    // Leitura de Dados
     function carregarDados() {
-      // Ouve o Saldo
       db.ref(`usuarios/${userId}/barbearia/saldo`).on('value', snapshot => {
         saldoAtual = snapshot.val() || 0;
         atualizarVisorSaldo(saldoAtual);
       });
 
-      // Ouve o Histórico (Últimos 30 lançamentos)
       db.ref(`usuarios/${userId}/barbearia/historico`).orderByChild('timestamp').limitToLast(30).on('value', snapshot => {
         const lista = document.getElementById('listaHistorico');
         lista.innerHTML = '';
@@ -301,9 +344,8 @@
         }
 
         const registros = [];
-        snapshot.forEach(child => { registros.push(child.val()); });
+        snapshot.forEach(child => { registros.push({ id: child.key, ...child.val() }); });
         
-        // Inverte para mostrar o mais recente no topo
         registros.reverse().forEach(item => {
           const li = document.createElement('li');
           li.className = 'history-item';
@@ -312,17 +354,19 @@
           const sinal = isPositivo ? '+' : '-';
           const classeCor = isPositivo ? 'val-pos' : 'val-neg';
           
-          // Formata Data/Hora
           const dataObj = new Date(item.timestamp);
           const dataStr = dataObj.toLocaleDateString('pt-BR') + ' às ' + dataObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
 
           li.innerHTML = `
-            <div>
+            <div class="history-info">
               <div class="history-desc">${item.descricao}</div>
               <div class="history-date">${dataStr}</div>
             </div>
-            <div class="history-val ${classeCor}">
-              ${sinal} R$ ${item.valor.toFixed(2).replace('.', ',')}
+            <div class="history-right">
+              <div class="history-val ${classeCor}">
+                ${sinal} R$ ${item.valor.toFixed(2).replace('.', ',')}
+              </div>
+              <button class="btn-delete" onclick="tentarExcluir('${item.id}', '${item.descricao}', ${item.valor}, '${item.tipo}')">✕</button>
             </div>
           `;
           lista.appendChild(li);
@@ -330,13 +374,34 @@
       });
     }
 
-    // ==========================================
-    // 4. FUNÇÕES DE LANÇAMENTO
-    // ==========================================
+    // Modal Control
+    let confirmAction = null;
+    function showModal(title, desc, confirmText, isDanger, action) {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalDesc').innerText = desc;
+      const confirmBtn = document.getElementById('modalConfirmBtn');
+      confirmBtn.innerText = confirmText;
+      confirmBtn.className = 'modal-btn ' + (isDanger ? 'modal-btn-danger' : 'modal-btn-confirm');
+      
+      confirmAction = action;
+      document.getElementById('customModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('customModal').classList.remove('active');
+      confirmAction = null;
+    }
+
+    function executeModal() {
+      if (confirmAction) confirmAction();
+      closeModal();
+    }
+
+    // Ações
     function lancarRapido(descricao, valor) {
-      if(confirm(`Confirmar: ${descricao} (-R$ ${valor.toFixed(2).replace('.', ',')})?`)) {
+      showModal('Confirmar Débito', `Lançar ${descricao} no valor de R$ ${valor.toFixed(2).replace('.', ',')}?`, 'Confirmar', false, () => {
         processarTransacao(descricao, valor, 'subtracao');
-      }
+      });
     }
 
     function lancarPersonalizado(tipo) {
@@ -348,45 +413,44 @@
       const valor = parseFloat(valorStr);
 
       if (isNaN(valor) || valor <= 0) {
-        alert("Digite um valor válido!");
+        showModal('Erro', 'Por favor, digite um valor válido.', 'Entendi', false, null);
         return;
       }
 
       processarTransacao(descricao, valor, tipo);
-      
-      // Limpar campos
       descInput.value = '';
       valInput.value = '';
     }
 
     function processarTransacao(descricao, valor, tipo) {
       if (!userId) return;
-
       const novoSaldo = tipo === 'soma' ? (saldoAtual + valor) : (saldoAtual - valor);
-      
-      const novaTransacao = {
-        descricao: descricao,
-        valor: valor,
-        tipo: tipo,
-        timestamp: firebase.database.ServerValue.TIMESTAMP
-      };
-
+      const novaTransacao = { descricao, valor, tipo, timestamp: firebase.database.ServerValue.TIMESTAMP };
       const updates = {};
       const novaChaveHist = db.ref().child(`usuarios/${userId}/barbearia/historico`).push().key;
       
       updates[`usuarios/${userId}/barbearia/historico/${novaChaveHist}`] = novaTransacao;
       updates[`usuarios/${userId}/barbearia/saldo`] = novoSaldo;
-
-      db.ref().update(updates).catch(err => alert("Erro ao salvar: " + err.message));
+      db.ref().update(updates);
     }
 
-    // ==========================================
-    // 5. INTERFACE
-    // ==========================================
+    // Exclusão com Estorno Automático
+    function tentarExcluir(id, descricao, valor, tipo) {
+      showModal('Excluir Registro', `Deseja apagar "${descricao}" e estornar o valor de R$ ${valor.toFixed(2).replace('.', ',')} no saldo?`, 'Excluir', true, () => {
+        const ajuste = tipo === 'soma' ? -valor : valor;
+        const novoSaldo = saldoAtual + ajuste;
+        const updates = {};
+        
+        updates[`usuarios/${userId}/barbearia/historico/${id}`] = null;
+        updates[`usuarios/${userId}/barbearia/saldo`] = novoSaldo;
+        db.ref().update(updates);
+      });
+    }
+
+    // Atualiza Visual
     function atualizarVisorSaldo(valor) {
       const visor = document.getElementById('saldoDisplay');
       visor.innerText = `R$ ${valor.toFixed(2).replace('.', ',')}`;
-      
       if (valor < 0) {
         visor.classList.add('saldo-negativo');
       } else {
