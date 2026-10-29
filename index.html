@@ -90,15 +90,32 @@
     .saldo-negativo { color: var(--danger) !important; }
 
     /* Ações Rápidas */
+    .card-header-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
     .card-title {
       font-size: 0.85rem;
       font-weight: 600;
       color: var(--text-secondary);
-      margin-bottom: 14px;
-      display: block;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
+    .btn-whatsapp {
+      background: transparent;
+      border: 0.5px solid var(--border);
+      color: var(--text-primary);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .btn-whatsapp:active { background: #F2F2F7; }
+
     .quick-actions {
       display: flex;
       flex-direction: column;
@@ -163,22 +180,31 @@
     .btn:active { transform: scale(0.97); opacity: 0.8; }
 
     /* Histórico */
-    .history-list {
-      list-style: none;
-      max-height: 400px;
+    .history-container {
+      max-height: 420px;
       overflow-y: auto;
+    }
+    .month-group-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 16px 0 8px 0;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border);
     }
     .history-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--border);
+      padding: 12px 0;
+      border-bottom: 0.5px solid rgba(0,0,0,0.04);
     }
     .history-item:last-child { border-bottom: none; }
     .history-info { flex: 1; }
     .history-desc { font-weight: 500; font-size: 0.95rem; color: var(--text-primary); }
-    .history-date { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+    .history-date { font-size: 0.75rem; color: var(--text-muted); margin-top: 3px; }
     
     .history-right {
       display: flex;
@@ -240,9 +266,9 @@
       <div class="saldo-valor" id="saldoDisplay">R$ 0,00</div>
     </div>
 
-    <!-- AÇÕES RÁPIDAS -->
+    <!-- AÇÕES RÁPIDAS (Ordenadas por preço) -->
     <div class="ios-card">
-      <span class="card-title">Ações Rápidas</span>
+      <span class="card-title" style="margin-bottom: 14px; display:block;">Ações Rápidas</span>
       <div class="quick-actions">
         <button class="btn-quick" onclick="lancarRapido('Barba', 25.00)">
           <span>Barba</span> <span>- R$ 25,00</span>
@@ -258,7 +284,7 @@
 
     <!-- LANÇAMENTO PERSONALIZADO -->
     <div class="ios-card">
-      <span class="card-title">Lançamento Personalizado</span>
+      <span class="card-title" style="margin-bottom: 14px; display:block;">Lançamento Personalizado</span>
       <div class="form-group">
         <input type="text" id="inputDesc" placeholder="Descrição">
       </div>
@@ -273,10 +299,13 @@
 
     <!-- HISTÓRICO -->
     <div class="ios-card">
-      <span class="card-title">Histórico Recente</span>
-      <ul class="history-list" id="listaHistorico">
-        <li style="text-align:center; padding: 20px; color: var(--text-muted); font-size: 0.85rem;">Carregando...</li>
-      </ul>
+      <div class="card-header-flex">
+        <span class="card-title">Histórico Recente</span>
+        <button class="btn-whatsapp" onclick="enviarRelatorioWhatsApp()">Enviar Mês</button>
+      </div>
+      <div class="history-container" id="listaHistorico">
+        <p style="text-align:center; padding: 20px; color: var(--text-muted); font-size: 0.85rem;">Carregando...</p>
+      </div>
     </div>
 
   </div>
@@ -294,7 +323,6 @@
   </div>
 
   <script>
-    // Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyD7vdvBDk6k48AlRDQpdrhOxG212MovmrM",
       authDomain: "rocha-batista.firebaseapp.com",
@@ -316,8 +344,8 @@
 
     let userId = null;
     let saldoAtual = 0;
+    let dadosGlobaisHistorico = [];
 
-    // Login Silencioso
     auth.signInWithEmailAndPassword(DEFAULT_EMAIL, DEFAULT_PASS).catch(err => console.error(err));
 
     auth.onAuthStateChanged(user => {
@@ -327,54 +355,69 @@
       }
     });
 
-    // Leitura de Dados
     function carregarDados() {
       db.ref(`usuarios/${userId}/barbearia/saldo`).on('value', snapshot => {
         saldoAtual = snapshot.val() || 0;
         atualizarVisorSaldo(saldoAtual);
       });
 
-      db.ref(`usuarios/${userId}/barbearia/historico`).orderByChild('timestamp').limitToLast(30).on('value', snapshot => {
-        const lista = document.getElementById('listaHistorico');
-        lista.innerHTML = '';
+      db.ref(`usuarios/${userId}/barbearia/historico`).orderByChild('timestamp').on('value', snapshot => {
+        const container = document.getElementById('listaHistorico');
+        container.innerHTML = '';
         
         if (!snapshot.exists()) {
-          lista.innerHTML = '<li style="text-align:center; padding: 20px; color: var(--text-muted); font-size: 0.85rem;">Nenhuma movimentação.</li>';
+          dadosGlobaisHistorico = [];
+          container.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--text-muted); font-size: 0.85rem;">Nenhuma movimentação.</p>';
           return;
         }
 
         const registros = [];
         snapshot.forEach(child => { registros.push({ id: child.key, ...child.val() }); });
         
-        registros.reverse().forEach(item => {
-          const li = document.createElement('li');
-          li.className = 'history-item';
-          
-          const isPositivo = item.tipo === 'soma';
-          const sinal = isPositivo ? '+' : '-';
-          const classeCor = isPositivo ? 'val-pos' : 'val-neg';
-          
-          const dataObj = new Date(item.timestamp);
-          const dataStr = dataObj.toLocaleDateString('pt-BR') + ' às ' + dataObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+        registros.sort((a, b) => b.timestamp - a.timestamp);
+        dadosGlobaisHistorico = registros; // Salva para o relatório do WhatsApp
 
-          li.innerHTML = `
-            <div class="history-info">
-              <div class="history-desc">${item.descricao}</div>
-              <div class="history-date">${dataStr}</div>
-            </div>
-            <div class="history-right">
-              <div class="history-val ${classeCor}">
-                ${sinal} R$ ${item.valor.toFixed(2).replace('.', ',')}
-              </div>
-              <button class="btn-delete" onclick="tentarExcluir('${item.id}', '${item.descricao}', ${item.valor}, '${item.tipo}')">✕</button>
-            </div>
-          `;
-          lista.appendChild(li);
+        // Agrupar por Mês/Ano
+        const grupos = {};
+        registros.forEach(item => {
+          const d = new Date(item.timestamp);
+          const mesAno = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+          const chaveMes = mesAno.charAt(0).toUpperCase() + mesAno.slice(1);
+          if (!grupos[chaveMes]) grupos[chaveMes] = [];
+          grupos[chaveMes].push(item);
         });
+
+        let htmlFinal = '';
+        for (const [mes, itens] of Object.entries(grupos)) {
+          htmlFinal += `<div class="month-group-title">${mes}</div>`;
+          itens.forEach(item => {
+            const isPositivo = item.tipo === 'soma';
+            const sinal = isPositivo ? '+' : '-';
+            const classeCor = isPositivo ? 'val-pos' : 'val-neg';
+            
+            const dataObj = new Date(item.timestamp);
+            const dataStr = dataObj.toLocaleDateString('pt-BR') + ' às ' + dataObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+
+            htmlFinal += `
+              <div class="history-item">
+                <div class="history-info">
+                  <div class="history-desc">${item.descricao}</div>
+                  <div class="history-date">${dataStr}</div>
+                </div>
+                <div class="history-right">
+                  <div class="history-val ${classeCor}">
+                    ${sinal} R$ ${item.valor.toFixed(2).replace('.', ',')}
+                  </div>
+                  <button class="btn-delete" onclick="tentarExcluir('${item.id}', '${item.descricao}', ${item.valor}, '${item.tipo}')">✕</button>
+                </div>
+              </div>
+            `;
+          });
+        }
+        container.innerHTML = htmlFinal;
       });
     }
 
-    // Modal Control
     let confirmAction = null;
     function showModal(title, desc, confirmText, isDanger, action) {
       document.getElementById('modalTitle').innerText = title;
@@ -397,7 +440,6 @@
       closeModal();
     }
 
-    // Ações
     function lancarRapido(descricao, valor) {
       showModal('Confirmar Débito', `Lançar ${descricao} no valor de R$ ${valor.toFixed(2).replace('.', ',')}?`, 'Confirmar', false, () => {
         processarTransacao(descricao, valor, 'subtracao');
@@ -434,7 +476,6 @@
       db.ref().update(updates);
     }
 
-    // Exclusão com Estorno Automático
     function tentarExcluir(id, descricao, valor, tipo) {
       showModal('Excluir Registro', `Deseja apagar "${descricao}" e estornar o valor de R$ ${valor.toFixed(2).replace('.', ',')} no saldo?`, 'Excluir', true, () => {
         const ajuste = tipo === 'soma' ? -valor : valor;
@@ -447,7 +488,40 @@
       });
     }
 
-    // Atualiza Visual
+    function enviarRelatorioWhatsApp() {
+      if (dadosGlobaisHistorico.length === 0) {
+        showModal('Aviso', 'Não há lançamentos para gerar o relatório.', 'Entendi', false, null);
+        return;
+      }
+
+      // Pega o mês do lançamento mais recente
+      const maisRecente = new Date(dadosGlobaisHistorico[0].timestamp);
+      const mesNome = maisRecente.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      const mesFormatado = mesNome.charAt(0).toUpperCase() + mesNome.slice(1);
+      const mesAlvo = maisRecente.getMonth();
+      const anoAlvo = maisRecente.getFullYear();
+
+      const itensDoMes = dadosGlobaisHistorico.filter(item => {
+        const d = new Date(item.timestamp);
+        return d.getMonth() === mesAlvo && d.getFullYear() === anoAlvo;
+      });
+
+      let texto = `Relatório Barbearia - ${mesFormatado}\n\n`;
+      texto += `Saldo Atual: R$ ${saldoAtual.toFixed(2).replace('.', ',')}\n\n`;
+      texto += `Movimentações do Mês:\n`;
+
+      itensDoMes.forEach(item => {
+        const d = new Date(item.timestamp);
+        const dataCurta = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        const sinal = item.tipo === 'soma' ? '+' : '-';
+        // Espaços invisíveis ou formatação textual para evitar que o WhatsApp crie links de discagem com os números
+        texto += `• ${dataCurta}: ${item.descricao} (${sinal} R$ ${item.valor.toFixed(2).replace('.', ',')})\n`;
+      });
+
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+      window.open(url, '_blank');
+    }
+
     function atualizarVisorSaldo(valor) {
       const visor = document.getElementById('saldoDisplay');
       visor.innerText = `R$ ${valor.toFixed(2).replace('.', ',')}`;
